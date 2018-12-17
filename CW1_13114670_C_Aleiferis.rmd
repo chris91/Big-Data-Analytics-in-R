@@ -1,0 +1,359 @@
+---
+title: "BDA CW1"
+author: "Christos Aleiferis 13114670, MSc ACT"
+output:
+  pdf_document: default
+  html_document: default
+  word_document: default
+---
+#CourseWork 1
+
+##1.Statistical learning methods
+##For each of parts (a) through (d), indicate whether we would generally expect the performance of a flexible statistical learning method to be better or worse than an inflexible method. Justify your answer.
+###(a)The sample size n is extremely large, and the number of predictors p is small.
+In this case I would choose a flexible statistical learning method. We have a big number of observations but only a a few predictors so a non-parametric method could get an estimate close to the sample data with better accuracy rather than trying to find an accurate function with only a few predictors. 
+
+###(b)The number of predictors p is extremely large, and the number of observations n is small.
+In this case I think an inflexible method would have better performance since we have enough predictors to create a simplified function for the case and not enough observations to create a flexible method. 
+
+###(c)The relationship between the predictors and response is highly non-linear.
+A flexible method would be prefarable since a simplified parametric form for f would be inaccurate.
+
+###(d)The variance of the error terms, i.e. 
+${\sigma^2}=Var({\epsilon})$, is extremely high.
+An inflexible method would perform better, since a flexible method would be affected more by the variance and would include the errors by trying to fit the method to the observation points.
+
+##2.Descriptive analysis
+##In a higher educational institution the comprehensive applied mathematics exam is comprised of two parts. On the first day, 20 students took the exam, the results of which are presented below:
+##Oral exam results: 4, 1, 4, 5, 3, 2, 3, 4, 3, 5, 2, 2, 4, 3, 5, 5, 1, 1, 1, 2.
+##Written exam results: 2, 3, 1, 4, 2, 5, 3, 1, 2, 1, 2, 2, 1, 1, 2, 3, 1, 2, 3, 4.
+
+###(a)Use R to calculate the mean, the mode, the median, the variance and the standard deviation of the oral and written exams separately and together as well.
+```{r}
+#Oral:
+oral = c(4, 1, 4, 5, 3, 2, 3, 4, 3, 5, 2, 2, 4, 3, 5, 5, 1, 1, 1, 2)
+mean(oral)
+names(sort(-table(oral)))[1]
+median(oral)
+var(oral)
+sd(oral)
+#Written:
+written = c(2, 3, 1, 4, 2, 5, 3, 1, 2, 1, 2, 2, 1, 1, 2, 3, 1, 2, 3, 4)
+mean(written)
+names(sort(-table(written)))[1]
+median(written)
+var(written)
+sd(written)
+#Combined:
+combined = c(oral,written)
+mean(combined)
+names(sort(-table(combined)))[1]
+median(combined)
+var(combined)
+sd(combined)
+```
+###(b)Find the covariance and correlation between the oral and written exam scores.
+```{r}
+cov(oral, written)
+cor(oral, written)
+```
+
+###(c)Is there a positive or negative or no correlation between the two?
+There is a weak negative correlation between oral and written exams.
+
+###(d)Is there causation between the two? Justify your answers.
+There is not enough evidence to decide if there is causation between oral and written exams. Besides the correlation between the two is very low to indicate causation.
+
+
+##3.Descriptive analysis
+##This exercise involves the Auto data set studied in the class. Make sure that the missing values have been removed from the data.
+```{r}
+#install.packages("ISLR")
+library(ISLR)
+#Auto = read.table("Auto.data")
+fix(Auto)
+```
+###(a)Which of the predictors are quantitative, and which are qualitative?
+The predictors mpg, cylinders, displacement, horsepower, weight, acceleration, year are quantitative and origin, name are qualitative.
+
+###(b)What is the range of each quantitative predictor? You can answer this using the range() function.
+```{r}
+range(Auto$mpg)
+range(Auto$cylinders)
+range(Auto$displacement)
+range(Auto$horsepower)
+range(Auto$weight)
+range(Auto$acceleration)
+range(Auto$year)
+```
+
+###(c)What is the mean and standard deviation of each quantitative predictor?
+```{r}
+mean(Auto$mpg)
+sd(Auto$mpg)
+
+mean(Auto$cylinders)
+sd(Auto$cylinders)
+
+mean(Auto$displacement)
+sd(Auto$displacement)
+
+mean(Auto$horsepower)
+sd(Auto$horsepower)
+
+mean(Auto$weight)
+sd(Auto$weight)
+
+mean(Auto$acceleration)
+sd(Auto$acceleration)
+
+mean(Auto$year)
+sd(Auto$year)
+
+```
+
+###(d)Now remove the 10th through 85th observations. What is the range, mean, and standard deviation of each predictor in the subset of the data that remains?
+```{r}
+AutoSubset = Auto[10:84,]
+range(AutoSubset$mpg)
+mean(AutoSubset$mpg)
+sd(AutoSubset$mpg)
+
+range(AutoSubset$cylinders)
+mean(AutoSubset$cylinders)
+sd(AutoSubset$cylinders)
+
+range(AutoSubset$displacement)
+mean(AutoSubset$displacement)
+sd(AutoSubset$displacement)
+
+range(AutoSubset$horsepower)
+mean(AutoSubset$horsepower)
+sd(AutoSubset$horsepower)
+
+range(AutoSubset$weight)
+mean(AutoSubset$weight)
+sd(AutoSubset$weight)
+
+range(AutoSubset$acceleration)
+mean(AutoSubset$acceleration)
+sd(AutoSubset$acceleration)
+
+range(AutoSubset$year)
+mean(AutoSubset$year)
+sd(AutoSubset$year)
+```
+
+###(e)Using the full data set, investigate the predictors graphically, using scatterplots or other tools of your choice. Create some plots highlighting the relationships among the predictors. Comment on your findings.
+```{r}
+plot(Auto$mpg, Auto$cylinders, xlab="miles per gallon", ylab="number of cylinders", main="plot of mpg vs num of cylinders ratio" )
+
+plot(Auto$mpg, Auto$displacement, xlab="miles per gallon", ylab="displacement in cm3", main="plot of mpg vs displacement ratio" )
+
+plot(Auto$mpg, Auto$horsepower, xlab="miles per gallon", ylab="horsepower", main="plot of mpg vs horsepower ratio" )
+
+plot(Auto$mpg, Auto$weight, xlab="miles per gallon", ylab="weight", main="plot of mpg vs weight ratio" )
+
+plot(Auto$mpg, Auto$acceleration, xlab="miles per gallon", ylab="acceleration", main="plot of mpg vs accelaration ratio" )
+
+plot(Auto$mpg, Auto$year, xlab="miles per gallon", ylab="year", main="plot of mpg vs year ratio" )
+
+plot(Auto$displacement, Auto$acceleration, xlab="displacement", ylab="accelaration", main="plot of displacement vs acceleration ratio" )
+
+plot(Auto$displacement, Auto$horsepower, xlab="displacement", ylab="horsepower", main="plot of displacement vs horsepower ratio" )
+```
+
+From the miles per gallon plots I can conclude that the higher the number of cylinders, the displacement and the horsepower are the lower mileage a car has.The accelaration also affects mileage as the lowest time for 0-60 indicates a lower mileage. From the plot of displacement against horsepower I can conclude that the higher the displacement the higher the horsepower and there is a relationship between them which could allow us to use a linear regression model. 
+
+###(f)Suppose that we wish to predict gas mileage (mpg) on the basis of the other variables. Do your plots suggest that any of the other variables might be useful in predicting mpg? Justify your answer.
+As mentioned above, from the miles per gallon plots I can conclude that the higher the number of cylinders, the displacement and the horsepower are the lower mileage a car has.The accelaration also affects mileage as the lowest time for 0-60 indicates a lower mileage for the car.
+
+##4.Linear regression
+##This question involves the use of simple linear regression on the Auto data set.
+
+###(a)Use the lm() function to perform a simple linear regression with mpg as the response and horsepower as the predictor. Use the summary() function to print the results. Comment on the output. For example:
+```{r}
+lm.fit = lm(mpg~horsepower, data=Auto)
+summary(lm.fit)
+```
+###i.Is there a relationship between the predictor and the response?
+The p-value has a very small value (<2e-16), causing us to reject the null hypothesis for $\beta1=0$ and conclude that there is a relationship between our predictor and our response. 
+###ii.How strong is the relationship between the predictor and the response?
+The R2 statistics has a value 0.6049(values from 0 to 1) which means that the model fits sufficiently to our data and some of the initial variance has been explained. To be more specific 60.49% of the initial variance has been explained.
+###iii.Is the relationship between the predictor and the response positive or negative?
+The relationship between the predictor and the response is negative, as indicated by $\beta1=-0.157845$ which has a negative value.
+###iv.What is the predicted mpg associated with a horsepower of 98? What are the associated 95% confidence and prediction intervals?
+```{r}
+predict(lm.fit,data.frame(horsepower=98),interval="prediction")
+predict(lm.fit,data.frame(horsepower=98),interval="confidence", level = 0.95)
+predict(lm.fit,data.frame(horsepower=98),interval="prediction", level = 0.95)
+
+```
+###(b)Plot the response and the predictor. Use the abline() function to display the least squares regression line.
+```{r}
+plot(mpg~horsepower, data = Auto)
+abline(lm.fit)
+```
+###(c)Plot the 95% confidence interval and prediction interval in the same plot as (b) using different colours and legends.
+```{r}
+plot(mpg~horsepower, data = Auto)
+abline(lm.fit)
+p_conf = predict(lm.fit,interval="confidence", level = 0.95)
+p_pred = predict(lm.fit,interval="prediction", level = 0.95)
+lines(Auto$horsepower,p_conf[,"lwr"],col="red", type="b",pch="+")
+lines(Auto$horsepower,p_conf[,"upr"],col="red", type="b",pch="+")
+lines(Auto$horsepower,p_pred[,"upr"],col="blue", type="b",pch="*")
+lines(Auto$horsepower,p_pred[,"lwr"],col="blue",type="b",pch="*")
+legend("bottomright",
+       pch=c("+","*"),
+       col=c("red","blue"),
+       legend = c("confidence","prediction"))
+```
+
+##5.Logistic regression
+##Using the Boston data set, fit classification models in order to predict whether a given suburb has a crime rate above or below the median. Explore logistic regression models using various subsets of the predictors. Describe your findings.
+```{r}
+library(MASS)
+
+Bcrime = rep(0, length(Boston$crim))
+Bcrime[Boston$crim > median(Boston$crim)] = 1
+Boston = data.frame(Boston, Bcrime)
+
+glm.fit = glm(Bcrime~zn+indus+chas+nox+rm+age+dis+rad+tax+ptratio+black+lstat+medv, data=Boston, family=binomial)
+glm.probs = predict(glm.fit,data=Boston, type="response")
+glm.pred = rep(0 , length(glm.probs))
+glm.pred[glm.probs > .5] = 1
+table(glm.pred, Bcrime)
+mean(glm.pred==Bcrime)
+
+#Below I choose to use a logistic model with two important predictors. 
+glm.fit = glm(Bcrime~indus+tax, data=Boston, family=binomial)
+glm.probs = predict(glm.fit,data=Boston, type="response")
+glm.pred = rep(0 , length(glm.probs))
+glm.pred[glm.probs > .5] = 1
+table(glm.pred, Bcrime)
+mean(glm.pred==Bcrime)
+
+#Below I choose to use a logistic model with one important predictor.
+glm.fit = glm(Bcrime~medv, data=Boston, family=binomial)
+glm.probs = predict(glm.fit,data=Boston, type="response")
+glm.pred = rep(0 , length(glm.probs))
+glm.pred[glm.probs > .5] = 1
+table(glm.pred, Bcrime)
+mean(glm.pred==Bcrime)
+```
+I dont understand why the algorithm does not converge as expected.
+
+##6.Resampling methods
+##Suppose that we use some statistical learning method to make a prediction for the response Y for a particular value of the predictor X. Carefully describe how we might estimate the standard deviation of our prediction.
+We know that the variance of our prediction depends on the training data set that we use to fit the model. Therefore, by using different training data sets and observing the effect in our statistical learning method we could estimate the standard deviation on our prediction.
+
+##7.Resampling methods
+##We will now perform cross-validation on a simulated data set.
+
+###(a) Generate a simulated data set as follows:
+```{r}
+set.seed(500)
+y = rnorm(500)
+x = 4 - rnorm(500)
+y = x - 2*x^2 + 3*x^4 + rnorm(500)
+```
+
+##In this data set, what is n and what is p? Write out the model used to generate the data in equation form.
+In this data set n = 500 (sample size) and p = 4 (degree of polynomial function), and the model is ${\psi = \chi - 2*\chi^2 + 3*\chi^4 + \epsilon, \beta0 = 0, \beta1=1, \beta2=-2, \beta3=0, \beta4=3}$ 
+###(b) Create a scatterplot of X against Y. Comment on what you find.
+```{r}
+plot(y~x)
+```
+
+There is a non-linear relationship between x, y.
+
+###(c) Set the seed to be 23, and then compute the LOOCV and 10-fold CV errors that result from fitting the following four models using least squares:
+i.${\psi = \beta0 + \beta1*x + \epsilon}$
+ii.${\psi = \beta0 + \beta1*x + \beta2*x^2 + \epsilon}$
+iii.${\psi = \beta0 + \beta1*x + \beta2*x^2 + \beta3*x^3 + \epsilon}$
+iv.${\psi = \beta0 + \beta1*x + \beta2*x^2 + \beta3*x^3 + \beta4*x^4 + \epsilon}$
+```{r}
+library(boot)
+#i.
+set.seed(23)
+res = data.frame(x,y)
+lm.fit1 = glm(y~x, data = res)
+cv.err1 = cv.glm(res, lm.fit1)
+cv.err1$delta
+
+cv.err2 = cv.glm(res, lm.fit1, K=10)
+cv.err2$delta
+#ii.
+set.seed(23)
+lm.fit2 = glm(y~poly(x,2), data = res)
+cv.err1 = cv.glm(res, lm.fit2)
+cv.err1$delta
+
+cv.err2 = cv.glm(res, lm.fit2, K=10)
+cv.err2$delta
+#iii.
+set.seed(23)
+lm.fit3 = glm(y~poly(x,3), data = res)
+cv.err1 = cv.glm(res, lm.fit3)
+cv.err1$delta
+
+cv.err2 = cv.glm(res, lm.fit3, K=10)
+cv.err2$delta
+#iv.
+set.seed(23)
+lm.fit4 = glm(y~poly(x,4), data = res)
+cv.err1 = cv.glm(res, lm.fit4)
+cv.err1$delta
+
+cv.err2 = cv.glm(res, lm.fit4, K=10)
+cv.err2$delta
+```
+##Note you may find it helpful to use the data.frame() function to create a single data set containing both X and Y.
+###(d) Repeat (c) using random seed 46, and report your results. Are your results the same as what you got in (c)? Why?
+```{r}
+library(boot)
+#i.
+set.seed(46)
+res = data.frame(x,y)
+lm.fit1 = glm(y~x, data = res)
+cv.err1 = cv.glm(res, lm.fit1)
+cv.err1$delta
+
+cv.err2 = cv.glm(res, lm.fit1, K=10)
+cv.err2$delta
+#ii.
+set.seed(46)
+lm.fit2 = glm(y~poly(x,2), data = res)
+cv.err1 = cv.glm(res, lm.fit2)
+cv.err1$delta
+
+cv.err2 = cv.glm(res, lm.fit2, K=10)
+cv.err2$delta
+#iii.
+set.seed(46)
+lm.fit3 = glm(y~poly(x,3), data = res)
+cv.err1 = cv.glm(res, lm.fit3)
+cv.err1$delta
+
+cv.err2 = cv.glm(res, lm.fit3, K=10)
+cv.err2$delta
+#iv.
+set.seed(46)
+lm.fit4 = glm(y~poly(x,4), data = res)
+cv.err1 = cv.glm(res, lm.fit4)
+cv.err1$delta
+
+cv.err2 = cv.glm(res, lm.fit4, K=10)
+cv.err2$delta
+```
+As expected the results for cv.err1 (LOOCV) are the same for both seeds because in LOOCV we leave one observation per iteration for the training. The results for cv.err2(10-fold) differ slightly when we change the seed. 
+
+###(e) Which of the models in (c) had the smallest LOOCV and 10-fold CV error? Is this what you expected? Explain your answer.
+The model with the smallest error in LOOCV was .iv and in 10-fold CV .iv, with similar values. This happens because the initial relationship (from a) that we want to fit is quadratic and therefore the quadratic model has lower error.  
+
+###(f) Comment on the statistical significance of the coefficient estimates that results from fitting each of the models in (c) using least squares. Do these results agree with the conclusions drawn based on the cross-validation results?
+```{r}
+summary(lm.fit4)
+```
+We see that all the coefficients are significant from their small p-values. Although, we would have expexted the $\beta3$ coefficient to be insignificant as it is 0 in our initial funtion. 

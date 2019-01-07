@@ -1,0 +1,366 @@
+---
+title: "BDA CW2"
+author: "Christos Aleiferis 13114670, MSc ACT"
+output:
+  pdf_document: default
+  html_document: default
+  word_document: default
+---
+#CourseWork 2
+
+##1. Decision Trees
+##(a) Sketch the tree corresponding to the partition of the predictor space illustrated in the left-hand panel of the figure above. The numbers inside the boxes indicate the mean of Y within each region.
+Firstly, I will split the tree at X1 = 1:
+  if X1 >= 1 then I have the leaf node 5.
+  else
+  I will split at X2 = 1:
+    if X2 >= 1 then I have the leaf node 15.
+    else
+    I will split at X1 = 0:
+      if X1 >= 0 then I will check X2 = 0:
+        if X2 >= 0 then I have the leaf node 0.
+        else I have the leaf node 10.
+      else I have the leaf node 3.
+
+
+##(b) Create a diagram similar to the left-hand panel of the figure, using the tree illustrated in the right-hand panel of the same figure. You should divide up the predictor space into the correct regions, and indicate the mean for each region.
+```{r}
+plot(NA, NA, xlim=c(-3,3), ylim=c(-3,3), xlab="X1", ylab="X2")
+# Firstly, I split at X2 = 1:
+lines(x=c(-3, 3), y=c(1,1))
+# Then I split in X1 = 1 and X2 = 2 from the other branch
+lines(x=c(1, 1), y=c(-3, 1))
+lines(x=c(-3, 3), y=c(2, 2))
+# Finally I split in X1 = 0
+lines(x=c(0, 0), y=c(1, 2))
+
+#Adding the means
+text(x=-1.5, y=-1.5, labels=-1.80)
+text(x=2, y=-1.5, labels=0.63)
+text(x=0, y=2.5, labels=2.49)
+text(x=-2, y=1.5, labels=-1.06)
+text(x=2, y=1.5, labels=0.21)
+```
+
+##2. Regression Trees
+##In the lab, a classification tree was applied to the Carseats data set after converting Sales into a qualitative response variable. Now we will seek to predict Sales using regression trees and related approaches, treating the response as a quantitative variable.
+##(a) Split the data set into a training set and a test set.
+```{r}
+library(tree)
+library(ISLR)
+set.seed(10)
+Carseats.train = sample(1:nrow(Carseats), nrow(Carseats)/2)
+Carseats.test = Carseats[-Carseats.train, "Sales"]
+
+```
+##(b) Fit a regression tree to the training set. Plot the tree, and interpret the results. What test error rate do you obtain?
+```{r}
+set.seed(10)
+tree.Carseats = tree(Sales~., Carseats, subset=Carseats.train)
+plot(tree.Carseats)
+text(tree.Carseats, pretty=0)
+summary(tree.Carseats)
+# I observe that the most important variables for the construction of the tree are ShelveLoc and Price. Also, all the variables are used to create the tree.
+# I cannot find the test error rate, since we are observing a regression and not a classification tree, but the estimated test MSE is the following:
+yhat = predict(tree.Carseats, newdata=Carseats[-Carseats.train,])
+mean((yhat-Carseats.test)^2)
+```
+##(c) Use cross-validation in order to determine the optimal level of tree complexity. Does pruning the tree improve the test error rate?
+```{r}
+set.seed(10)
+cv.Carseats = cv.tree(tree.Carseats)
+cv.Carseats
+plot(cv.Carseats$size, cv.Carseats$dev, type = "b" )
+#The best results appear when the number of terminal nodes is 20. Therefore I dont need to prune the tree since the tree has already the optimal number of terminal nodes.
+
+```
+##(d) Use the bagging approach in order to analyze this data. What test error rate do you obtain? Use the importance() function to determine which variables are most important.
+```{r}
+library(randomForest)
+bag.Carseats = randomForest(Sales~. , data=Carseats, subset=Carseats.train, mtry=10, ntree=500, importance=TRUE)
+bag.yhat = predict(bag.Carseats, newdata=Carseats[-Carseats.train, ])
+mean((bag.yhat-Carseats.test)^2)
+importance(bag.Carseats)
+
+```
+
+
+##(e) Use random forests to analyze this data. What test error rate do you obtain? Use the importance() function to determine which variables are most important. Describe the effect of m, the number of variables considered at each split, on the error rate obtained.
+```{r}
+sqrt(10)
+# mtry=3
+rf.Carseats = randomForest(Sales~., data=Carseats, subset=Carseats.train, mtry=3, ntree=500, importance=TRUE)
+rf.yhat = predict(rf.Carseats, newdata=Carseats[-Carseats.train, ])
+mean((rf.yhat-Carseats.test)^2)
+importance(rf.Carseats)
+#I obtain worse MSE than in bagging, but the 2 most important variables are the same 
+```
+
+##3. Classification Trees
+##This problem involves the OJ data set which is part of the ISLR package.
+##(a) Create a training set containing a random sample of 800 observations, and a test set containing the remaining observations.
+```{r}
+library(ISLR)
+set.seed(10)
+OJ.train = sample(1:nrow(OJ), 800)
+OJ.test = OJ[-OJ.train, ]
+
+```
+##(b) Fit a tree to the training data, with Purchase as the response and the other variables as predictors. Use the summary() function to produce summary statistics about the tree, and describe the results obtained. What is the training error rate? How many terminal nodes does the tree have?
+```{r}
+tree.OJ = tree(Purchase~., data=OJ, subset=OJ.train)
+summary(tree.OJ)
+#The training error rate is 0.1625 and the number of terminal nodes 7. The variables used are "LoyalCH", "SpecialCH", "PriceDiff"
+```
+##(c) Type in the name of the tree object in order to get a detailed text output. Pick one of the terminal nodes, and interpret the information displayed.
+```{r}
+tree.OJ
+#I pick terminal node 10. The variable used for the splitting is SpecialCH < 0.5, the observations in this leaf are 104, the deviance is 125, CH is 28.846% and MM is 71,154%. 
+```
+##(d) Create a plot of the tree, and interpret the results.
+```{r}
+plot(tree.OJ)
+text(tree.OJ, pretty=0)
+#The most important variables "LoyalCH", "SpecialCH", "PriceDiff" appear in most of the decision branches(and higher in the tree) as expected.
+
+```
+##(e) Predict the response on the test data, and produce a confusion matrix comparing the test labels to the predicted test labels. What is the test error rate?
+```{r}
+tree.yhat = predict(tree.OJ, newdata=OJ.test, type="class")
+table(tree.yhat, OJ.test$Purchase)
+#Test Error Rate is :
+(27+22)/(155+27+22+66)
+```
+##(f) Apply the cv.tree() function to the training set in order to determine the optimal tree size.
+```{r}
+OJ.cv = cv.tree(tree.OJ, FUN=prune.misclass)
+OJ.cv
+#The optimal tree size is 5(terminal nodes).
+```
+##(g) Produce a plot with tree size on the x-axis and cross-validated classification error rate on the y-axis.
+```{r}
+plot(OJ.cv$dev~OJ.cv$size, xlab="Size of Tree", ylab="Classification Error Rate", type="b")
+
+```
+##(h) Which tree size corresponds to the lowest cross-validated classification error rate?
+```{r}
+#The lowest error rate is obtained in size 5(number of terminal nodes)
+
+```
+##(i) Produce a pruned tree corresponding to the optimal tree size obtained using cross-validation. If cross-validation does not lead to selection of a pruned tree, then create a pruned tree with five terminal nodes.
+```{r}
+OJ.prune = prune.misclass(tree.OJ, best=5)
+plot(OJ.prune)
+text(OJ.prune, pretty=0)
+
+```
+##(j) Compare the training error rates between the pruned and unpruned trees. Which is higher?
+```{r}
+summary(OJ.prune)
+#The classification error rate is slightly higher (0.1725 instead of 0.1625) for the pruned tree, which is quite unexpected.
+```
+##(k) Compare the test error rates between the pruned and unpruned trees. Which is higher?
+```{r}
+prune.yhat = predict(OJ.prune, newdata=OJ.test, type="class")
+table(prune.yhat, OJ.test$Purchase)
+#The Test Error Rate is:
+(25+26)/(151+25+26+68)
+#which is higher than 0.1814815(of the unpruned tree)
+```
+
+##4. SVM
+##In this problem, you will use support vector approaches in order to predict whether a given car gets high or low gas mileage based on the Auto data set.
+##(a) Create a binary variable that takes on a 1 for cars with gas mileage above the median, and a 0 for cars with gas mileage below the median.
+```{r}
+avgmpg = median(Auto$mpg)
+qualityofmpg = rep(0 , length(Auto$mpg))
+qualityofmpg[Auto$mpg >= avgmpg] = 1
+Auto$qualityofmpg = qualityofmpg
+```
+##(b) Fit a support vector classifier to the data with various values of cost, in order to predict whether a car gets high or low gas mileage. Report the cross-validation errors associated with different values of this parameter. Comment on your results.
+```{r}
+library(e1071)
+set.seed(1)
+tuneout = tune(svm, qualityofmpg~. , data=Auto, kernel="linear", ranges=list(cost=c(.001,.01,.1,1,5,10,100)))
+summary(tuneout)
+#The best parameter is at cost=1 
+```
+##(c) Now repeat (b), this time using SVMs with radial and polynomial basis kernels, with different values of gamma and degree and cost. Comment on your results.
+```{r}
+set.seed(1)
+tuneout = tune(svm, qualityofmpg~. , data=Auto, kernel="radial", ranges=list(cost=c(.001,.01,.1,1,5,10,100)))
+summary(tuneout)
+#The best parameter is at cost=100
+
+set.seed(1)
+tuneout = tune(svm, qualityofmpg~. , data=Auto, kernel="polynomial", ranges=list(cost=c(.001,.01,.1,1,5,10,100)))
+summary(tuneout)
+#The best parameter is at cost=100
+
+set.seed(1)
+tuneout = tune(svm, qualityofmpg~. , data=Auto, kernel="radial", ranges=list(cost=c(.001,.01,.1,1,5,10,100), gamma=c(.001,.01,.1,1,5,10,100)))
+summary(tuneout)
+#The best parameter is at cost=10 and gamma=0.1
+
+set.seed(1)
+tuneout = tune(svm, qualityofmpg~. , data=Auto, kernel="polynomial", ranges=list(cost=c(.001,.01,.1,1,5,10,100), degree=c(1, 2, 3, 4, 5, 6, 7)))
+summary(tuneout)
+#The best parameter is at cost=100 and degree=1
+```
+##(d) Make some plots to back up your assertions in (b) and (c).
+```{r}
+#Based on the previous results I am using svm function with the best parameters for each method
+set.seed(1)
+svmfit = svm(qualityofmpg~., data=Auto, kernel="linear", cost=1, scale=FALSE)
+plot(Auto, svmfit)
+
+set.seed(1)
+svmfit = svm(qualityofmpg~., data=Auto, kernel="radial", cost=10, gamma=.1, scale=FALSE)
+plot(Auto, svmfit)
+
+set.seed(1)
+svmfit = svm(qualityofmpg~., data=Auto, kernel="polynomial", cost=100, degree=1, scale=FALSE)
+plot(Auto, svmfit)
+```
+##5. SVM
+##Here we explore the maximal margin classifier on a toy data set. 
+##(a) We are given n = 7 observations in p = 2 dimensions. For each observation, there is an associated class label. Sketch the observations.
+```{r}
+x1 = c(3, 2, 4, 1, 2, 4, 4)
+x2 = c(4, 2, 4, 4, 1, 3, 1)
+y = c("Red", "Red", "Red", "Red", "Blue", "Blue", "Blue")
+plot(x2~x1, col=y, ylim=c(0,8), xlim=c(0,8))
+```
+
+##(b) Sketch the optimal separating hyperplane, and provide the equation for this hyperplane of the following form.
+${\beta0 + \beta1*\chi1 + \beta2*\chi2 = 0}$
+```{r}
+#The optimal hyperplane(line for 2d) will have to pass between (2,1) and (2,2) and (4,3) and (4,4) in the middle of each one(1,5 and 3,5). Therefore the equation would be ${x2 = x1 - 0.5}$
+x1 = c(3, 2, 4, 1, 2, 4, 4)
+x2 = c(4, 2, 4, 4, 1, 3, 1)
+y = c("Red", "Red", "Red", "Red", "Blue", "Blue", "Blue")
+plot(x2~x1, col=y, ylim=c(0,8), xlim=c(0,8))
+abline(-0.5, 1)
+```
+
+##(c) Describe the classification rule for the maximal margin classifier. It should be something along the lines of "Classify to Red if ${\beta0 + \beta1*\chi1 + \beta2*\chi2 > 0}$, and classify to Blue otherwise." Provide the values for ${\beta0, \beta1, \beta2}$
+Following the hyperplane of question (b) (line), everything above the line ${x2 = x1 - 0.5}$ (${-0.5 +\chi1 -\chi2 > 0}$) will be red, and below blue. ${\beta0=-0.5, \beta1=1, \beta2=-1}$.  
+
+##(d) On your sketch, indicate the margin for the maximal margin hyperplane.
+```{r}
+plot(x2~x1, col=y, ylim=c(0,8), xlim=c(0,8))
+abline(-0.5, 1)
+abline(-1, 1, lty = 2)
+abline(0, 1, lty = 2)
+```
+##(e) Indicate the support vectors for the maximal margin classifier.
+The support vectors are (2,2) and (4,4) for the red set and (2,1) and (4,3) for the blue.
+
+##(f) Argue that a slight movement of the seventh observation would not affect the maximal margin hyperplane.
+The seventh observation is (4,1) is far away from the maximal margin line and therefore a slight movement would not have any effect on it. On the other hand, a slight movement in one of the support vectors would change the hyperplane. 
+
+##(g) Sketch a hyperplane that is not the optimal separating hyperplane, and provide the equation for this hyperplane.
+```{r}
+#Another hyperplane that could be used but is not optimal is the following:
+plot(x2~x1, col=y, ylim=c(0,8), xlim=c(0,8))
+abline(-0.25, 1)
+```
+with equation ${-0.25 +\chi1 -\chi2 = 0}$
+
+##(h) Draw an additional observation on the plot so that the two classes are no longer separable by a hyperplane.
+```{r}
+x1 = c(3, 2, 4, 1, 2, 4, 4, 1)
+x2 = c(4, 2, 4, 4, 1, 3, 1, 3)
+y = c("Red", "Red", "Red", "Red", "Blue", "Blue", "Blue", "Blue")
+plot(x2~x1, col=y, ylim=c(0,8), xlim=c(0,8))
+```
+
+##6. Hierarchical clustering
+##Consider the USArrests data. We will now perform hierarchical clustering on the states.
+##(a) Using hierarchical clustering with complete linkage and Euclidean distance, cluster the states.
+```{r}
+set.seed(1)
+hc.complete = hclust(dist(USArrests), method="complete")
+plot(hc.complete)
+```
+
+##(b) Cut the dendrogram at a height that results in three distinct clusters. Which states belong to which clusters?
+```{r}
+cutree(hc.complete, 3)
+```
+
+##(c) Hierarchically cluster the states using complete linkage and Euclidean distance, after scaling the variables to have standard deviation one.
+```{r}
+set.seed(1)
+hc.complete2 = hclust(dist(scale(USArrests)), method="complete")
+plot(hc.complete2)
+```
+
+##(d) What effect does scaling the variables have on the hierarchical clustering obtained? In your opinion, should the variables be scaled before the inter-observation dissimilarities are computed? Provide a justification for your answer.
+```{r}
+# I cut the dendrogram at the same height to compare with the one before scaling
+cutree(hc.complete2, 3)
+# Scaling the variables leads to a small differnce in the clusters. In my opinion, the variables should be scaled when they have different units to observe the correct dissimilarities.
+```
+
+##7. PCA and K-Means Clustering
+##In this problem, you will generate simulated data, and then perform PCA and K-means clustering on the data.
+
+##(a) Generate a simulated data set with 20 observations in each of three classes (i.e. 60 observations total), and 50 variables.
+```{r}
+set.seed(1)
+simds = matrix(rnorm(60*50), ncol=50)
+simds[1:20, 1] = simds[1:20, 1] + 20
+simds[21:40, 2] = simds[21:40, 2] - 30
+simds[41:60, 3] = simds[41:60, 3] + 100
+
+
+```
+##(b) Perform PCA on the 60 observations and plot the first two principal components' eigenvector. Use a different color to indicate the observations in each of the three classes. If the three classes appear separated in this plot, then continue on to part (c). If not, then return to part (a) and modify the simulation so that there is greater separation between the three classes. Do not continue to part (c) until the three classes show at least some separation in the first two principal component eigenvectors.
+```{r}
+pr.simds = prcomp(simds, scale=FALSE)
+plot(pr.simds$x[, 1:2], col=1:3, xlab="PC1", ylab="PC2")
+#From the plot I can observe 3 different classes.
+
+```
+##(c) Perform K-means clustering of the observations with K = 3. How well do the clusters that you obtained in K-means clustering compare to the true class labels?
+```{r}
+km.simds = kmeans(simds, 3, nstart=20)
+plot(simds, col=(km.simds$cluster+1), main="K-Means Clustering Results with K=3", pch=20, cex=2)
+truecategories = c(rep(2, 20), rep(3, 20), rep(1, 20)) 
+table(truecategories, km.simds$cluster)
+# The clusters obtained fit perfectly with the initial categories.
+
+```
+##(d) Perform K-means clustering with K = 2. Describe your results.
+```{r}
+km.simds = kmeans(simds, 2, nstart=20)
+plot(simds, col=(km.simds$cluster+1), main="K-Means Clustering Results with K=3", pch=20, cex=2)
+table(truecategories, km.simds$cluster)
+# The clusters created are 2, although it is clear that this is not the best solution of the problem and one more cluster should have been used. The observations that should be in the third cluster are now grouped with the second one although there is a big distance between them.
+
+```
+##(e) Now perform K-means clustering with K = 4, and describe your results.
+```{r}
+km.simds = kmeans(simds, 4, nstart=20)
+plot(simds, col=(km.simds$cluster+1), main="K-Means Clustering Results with K=3", pch=20, cex=2)
+table(truecategories, km.simds$cluster)
+# The clusters created are 4, although it is clear that this is not the best solution of the problem and one less cluster should have been used. The observations that should be in the third cluster are now divided in two categories.
+
+```
+##(f) Now perform K-means clustering with K = 3 on the first two principal components, rather than on the raw data. That is, perform K-means clustering on the 60 × 2 matrix of which the first column is the first principal component's corresponding eigenvector, and the second column is the second principal component's corresponding eigenvector. Comment on the results.
+```{r}
+eigenvectors = pr.simds$x[, 1:2]
+km.eigenvectors = kmeans(eigenvectors, 3, nstart=20)
+plot(eigenvectors, col=(km.eigenvectors$cluster+1), main="K-Means Clustering Results with K=3", pch=20, cex=2)
+table(truecategories, km.eigenvectors$cluster)
+# I observe that I get the same accurate results with when I used the raw data. this happens because the principal components responsible for the classification are the most important observations which create the clusters, so the classification is perfect in this case.
+
+```
+##(g) Using the scale() function, perform K-means clustering with K = 3 on the data after scaling each variable to have standard deviation one. How do these results compare to those obtained in (b)? Explain.
+```{r}
+km.simds = kmeans(scale(simds), 3, nstart=20)
+plot(simds, col=(km.simds$cluster+1), main="K-Means Clustering Results with K=3", pch=20, cex=2)
+table(truecategories, km.simds$cluster)
+#When the initial data are scaled the categorisation provides inaccurate results, as not all of the observations get to the expected cluster.
+```
